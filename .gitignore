@@ -1,0 +1,8 @@
+# Ignore assets in src
+src/assets/
+
+# Ignore bin/src directory
+bin/src/
+
+# Ignore lib directory
+lib/
