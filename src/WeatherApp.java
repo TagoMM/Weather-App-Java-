@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Scanner;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import org.json.simple.*;
 import org.json.simple.parser.JSONParser;
@@ -44,7 +46,26 @@ public class WeatherApp {
 
             JSONObject hourly = (JSONObject) rJsonObject.get("hourly");
 
-            
+            JSONArray time = (JSONArray) hourly.get("time");
+            int index = findIndexOfCurrentTime(time);
+
+            JSONArray temperatureData = (JSONArray) hourly.get("temperature_2m");
+            double temperature = (double) temperatureData.get(index);
+
+            JSONArray weathercode = (JSONArray) hourly.get("weathercode");
+            String weatherCondition = convertWeatherCode((long) weathercode.get(index));
+
+            JSONArray relativeHumidity = (JSONArray) hourly.get("relativehumidity_2m");
+            long humidity = (long) relativeHumidity.get(index);
+
+            JSONArray windspeedData = (JSONArray) hourly.get("windspeed_10m");
+            double windspeed = (double) windspeedData.get(index);
+
+            JSONObject weatherData = new JSONObject();
+            weatherData.put("temperature", temperature);
+            weatherData.put("weather_condition", weatherCondition);
+            weatherData.put("temperature", humidity);
+            weatherData.put("temperature", windspeed);
 
         }catch(Exception e) {
             e.printStackTrace();
@@ -108,5 +129,44 @@ public class WeatherApp {
         }
 
         return null;
+    }
+
+    private static int findIndexOfCurrentTime(JSONArray timeList) {
+        String currentTime = getCurrentTime();
+
+        for(int i = 0; i < timeList.size(); i++) {
+            String time = (String) timeList.get(i);
+            if(time.equalsIgnoreCase(currentTime)){
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    public static String getCurrentTime() {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH':00'");
+
+        String formattedDateTime = currentDateTime.format(formatter);
+
+        return formattedDateTime;
+    }
+
+    private static String convertWeatherCode(long weathercode) {
+        String weatherCondition = "";
+        if(weathercode == 0L) {
+            weatherCondition = "Clear";
+        } else if(weathercode <= 3L && weathercode <= 3L) {
+            weatherCondition = "Cloudy";
+        } else if((weathercode >= 51L && weathercode <= 67L)
+            || (weathercode >= 80L && weathercode <= 99L)) {
+            weatherCondition = "Rain";
+        } else if((weathercode >= 71L && weathercode <= 77L)) {
+            weatherCondition = "Snow";
+        }
+
+        return weatherCondition;
     }
 }
